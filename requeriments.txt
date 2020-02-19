@@ -1,6 +1,8 @@
-cognitive_face
+rospkg
+rospy_message_converter
 opencv-python
-face_recognition
+cognitive_face
 pandas
 sklearn
 tqdm
+PyYAML

@@ -32,7 +32,7 @@ import rospy
 
 class Utils:
 
-    def __init__(self, source, percent_of_face):
+    def __init__(self, source, percent_of_face=0):
         self.source = source
         self.percent_of_face = percent_of_face
         self.bridge = CvBridge()
@@ -49,15 +49,14 @@ class Utils:
             props.append({"pi": pi, "pf": pf, "prop": round(prop*100/float(frame_size), 4)})
         return props
 
-    def take_picture_source(self, framePub):
-        source = self.source
-        print("take picture from source: *{}*".format(source))        
-        if source == 'webcam':
+    def take_picture_source(self, framePub=None):
+        print("take picture from source: *{}*".format(self.source))        
+        if self.source == 'webcam':
             cap = cv2.VideoCapture(0)
             error, frame = cap.read()
             frame = cv2.GaussianBlur(frame, (5, 5), 0)
             cap.release()
-        elif source == 'file':
+        elif self.source == 'file':
             ROOT_PATH = os.path.dirname(sys.modules['__main__'].__file__)
             frame = cv2.imread(ROOT_PATH+"/Resources/gente1.jpg")
         else:
@@ -67,7 +66,7 @@ class Utils:
     def add_features_to_image(self, frame, batch):
         frame_size = frame.shape[0]*frame.shape[1]
         isInFront = False
-        print "ADD Freatures***"
+        print ("ADD Freatures***")
         c = 0
         props = []
         cords = []

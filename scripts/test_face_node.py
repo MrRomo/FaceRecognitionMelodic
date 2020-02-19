@@ -22,9 +22,8 @@
 
 import rospy
 import json
-from face.srv import FaceDetector
-from face.srv import FaceMemorize
-from face.srv import FaceRecognize
+
+from face_cloud.srv import FaceRecognizeCloud
 from rospy_message_converter import message_converter
 from std_msgs.msg import String
 import ast
@@ -52,14 +51,14 @@ class TestFaceID():
     def recognize_face(self, cvWind):
         try:
             recognize_face_request = rospy.ServiceProxy(
-                'robot_face_recognize', FaceRecognize)
-            response = recognize_face_request(cvWind)
+                'face_recognize_cloud', FaceRecognizeCloud)
+            response = recognize_face_request(None, cvWind, 5)
             # Convierte la respuesta en un diccionerio util
 
             attributes = message_converter.convert_ros_message_to_dictionary(
                 response)
             attributes = eval(attributes['features'])
-            print attributes
+            print (attributes)
             if (attributes is not None) and ('name' in attributes):
                 print('Person {} detected'.format(str(attributes['name'])))
             else:
@@ -70,7 +69,7 @@ class TestFaceID():
 
     def memorize_face(self, name, cvWind, n_images):
         try:
-            memorize_face_request = rospy.ServiceProxy('robot_face_memorize', FaceMemorize)
+            memorize_face_request = rospy.ServiceProxy('face_recognize_cloud', FaceRecognizeCloud)
             response = memorize_face_request(name, cvWind, n_images)
             # Convierte la respuesta en un diccionerio util
             person = message_converter.convert_ros_message_to_dictionary(response)
@@ -78,7 +77,7 @@ class TestFaceID():
             if person is not None:
                 print("Person name: {}".format(str(person["name"])))
             else:
-                print "Not person detected"
+                print ("Not person detected")
 
         except rospy.ServiceException:
             print ("Error!! Make sure robot_face node is running ")
@@ -91,11 +90,11 @@ if __name__ == '__main__':
         test = TestFaceID()
         while 1:
             try:
-                option = int(raw_input('** Welcome to Robot Face Test Node ** \n What do you want to test\n 1. Face detector service \n 2. Face recognition service\n 3. Face memorize service \n 4. Salir\n'))
+                option = int(input('** Welcome to Robot Face Test Node ** \n What do you want to test\n 1. Face detector service \n 2. Face recognition service\n 3. Face memorize service \n 4. Salir\n'))
                 if(option == 4):
                     print('Saliendo')
                     break
-                choise = raw_input('you want the captures to be displayed? (S/n) ')
+                choise = input('you want the captures to be displayed? (S/n) ')
                 start = time.time()
                     
                 if(choise == ('s' or 'yes' or 'si' or 'S')):
@@ -111,7 +110,7 @@ if __name__ == '__main__':
                 elif(option == 3):
                     print('-Memorize service:')
                     name = 'Ricardo' + str(c)
-                    n_images = int(raw_input('Ingrese el numero de imagenes que desea entrenar:  ')) 
+                    n_images = int(input('Ingrese el numero de imagenes que desea entrenar:  ')) 
                     # name = raw_input('Ingrese el nombre de la persona que desea registrar:  ')
                     test.memorize_face(name, cvWindow, n_images)
                 else:
@@ -122,10 +121,10 @@ if __name__ == '__main__':
                 if(option<=len(col)):
                     df = df.append({col[option]:times}, ignore_index =True)
                     print ("Detector: {} - Recognize: {} Memorize: {}".format(df['Detector'].mean(),df['Recognize'].mean(),df['Memorize'].mean()))
-                    print df
+                    print (df)
                     c+=1
-            except ValueError, e:
-                print("Value error, please enter a number : %s" % e)
+            except ValueError:
+                print("Value error, please enter a number!")
 
 
 

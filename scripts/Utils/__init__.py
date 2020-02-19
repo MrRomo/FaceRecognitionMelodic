@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # //======================================================================//
 # //  This software is free: you can redistribute it and/or modify        //
 # //  it under the terms of the GNU General Public License Version 3,     //
@@ -18,30 +17,3 @@
 # //                                                                      //
 # //======================================================================//
 
-import rospy
-import sys
-from face_cloud.srv import FaceRecognizeCloud
-from Class.person_cloud import PersonCloud
-
-if __name__ == '__main__':
-    try:
-        rospy.init_node('face_recognition_cloud')
-        source = ''
-
-        try:
-            source = 'webcam' if sys.argv.index('webcam') else 'pepper'
-        except:
-            try:
-                source ='file' if sys.argv.index('file') else 'pepper'
-            except:
-                source = 'pepper'
-        
-        
-        face = PersonCloud(source)
-        print(source)
-        rospy.Service('face_recognize_cloud',FaceRecognizeCloud, face.selector)
-        print("robot face node started")
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        pass
-    

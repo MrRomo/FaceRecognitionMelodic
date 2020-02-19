@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # //======================================================================//
 # //  This software is free: you can redistribute it and/or modify        //
 # //  it under the terms of the GNU General Public License Version 3,     //

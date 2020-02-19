@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # //======================================================================//
 # //  This software is free: you can redistribute it and/or modify        //
 # //  it under the terms of the GNU General Public License Version 3,     //
@@ -18,77 +18,50 @@
 # //                                                                      //
 # //======================================================================//
 
-from azure import Azure
 import cv2
 import os, sys
-import Queue as qe
-from edit_files import Group
-from edit_files import PersonFiles
+import queue as qe
+from External_Layer.azure import Azure
+from Utils.utils import Utils
+from Utils.edit_files import Group
+from Utils.edit_files import PersonFiles
 
 class PersonCloud:
 
-    def __init__(self):
+    def __init__(self,source):
         self.ROOT_PATH = os.path.dirname(sys.modules['__main__'].__file__)
         self.azureService = Azure()
         self.codeError = 0
         self.gotAttributes = False
-        self.frame = None
         self.framesTrain = None
         self.bb_service = []
         # self.service = None
         self.name = "desconocido"
-        self.id_debug = None
-        self.faceId = ""
-        self.accuracy = None
-        self.age = 0
-        self.gender = ""
-        self.smile = 0
-        self.pose = {}
-        self.emotion = None
-        self.beard = 0
-        self.glasses = ""
-        self.eyesOpen = 0
-        self.mouthOpen = 0
-        self.bald = 0
-        self.hairColor = ""
-        self.sideburns = 0
-        self.eyeMakeUp = False
-        self.lipMakeUp = False
-        self.headWear = 0
-        self.mask = 0
-        self.mustache = 0
-
-        self.bb_actual = []
-        self.image_actual = None
-        self.imageBBPair = ([], None)
-        self.happiness = 0
-        self.sadness = 0
-        self.neutral = 0
-        self.surprise = 0
-        self.anger = 0
-
-        self.table = 0
-        self.country = ""
-        self.id = ""
-        self.id_azure = ""
-        self.interaction = 0
-
         self.lastInteractionTime = 0
         self.image = None
         self.G = Group()
+        self.utils = Utils(source)
 
-
-    def frame2bytes(self, frame):
-        retval, encoded_image = cv2.imencode('.png', frame)
-        return encoded_image.tobytes()
+    def selector(self,req):
+        if req.name:
+            return self.memorize(req.name, req.n_images)
+        else:
+            return self.recognize()
 
     def check_img(self, frame):
         if type(frame) != bytes:
-            return self.frame2bytes(frame)
+            retval, encoded_image = cv2.imencode('.png', frame)
+            return encoded_image.tobytes()
         else:
             return frame
 
-    def enrol(self, name, frames):
+    def memorize(self, name, n_images):
+        
+        frames = [self.utils.take_picture_source() for i in range(n_images)]
+
+        print('Numero de fotos tomadas:', len(frames))
+        
+
         person_id, self.codeError = self.azureService.create_person(name)
         succes = False
         if person_id is not None:
@@ -113,18 +86,16 @@ class PersonCloud:
             else:
                 print('No entrenado')
                 return []
-
-    def identify(self, frame):
-        self.reset_attributes()
-        self.frame = frame
-        imgBytes = self.check_img(frame)
-        identify,error = self.azureService.identify(imgBytes)
-        # print('IDENTIFY VERIFICATION: ', identify)
-        return identify
         
-    def identifyPerson(self, frame):
+    def recognize(self):
+        print(self.utils)
+        frame = self.utils.take_picture_source()
         personsList = self.persons_in_group()
-        people = self.identify(frame)
+        self.reset_attributes()
+        imgBytes = self.check_img(frame)
+        people, error = self.azureService.identify(imgBytes)
+        print(people)
+        # print('IDENTIFY VERIFICATION: ', identify)
         if len(people):
             for person in personsList:
                 if people['verify_recognition']:
@@ -133,38 +104,7 @@ class PersonCloud:
                 else:
                     people['name'] = 'Desconocido'
         return people
-      
 
-    def detectPerson(self, frame):
-        self.frame = frame
-        imgBytes = self.check_img(frame)
-        people = self.azureService.detect(imgBytes)
-        return people
-
-
-    def delete_persons(self):
-        deleted = False
-        personsList, self.codeError = self.azureService.get_all_names()
-        for person in personsList:
-            self.azureService.delete_person(person['personId'])
-            deleted = True
-            print('Person: {} Deleted !!'.format(person['personId']))
-            break
-        if not deleted:
-            print('Person: {} Not Found !!'.format(person['personId']))        
-    def delete_person_by_name(self,name):
-        deleted = False
-        personsList, self.codeError = self.azureService.get_all_names()
-        for person in personsList:
-            if person['name'] == name:
-                self.azureService.delete_person(person['personId'])
-                deleted = True
-                print('Person: {} Deleted !!'.format(name))
-                self.G.delete(name)
-                break
-        if not deleted:
-            print('Person: {} Not Found !!'.format(name))
-        
     def persons_in_group(self):
         personsList, self.codeError = self.azureService.get_all_names()
         return personsList
