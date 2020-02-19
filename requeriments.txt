@@ -1,0 +1,6 @@
+cognitive_face
+opencv-python
+face_recognition
+pandas
+sklearn
+tqdm
