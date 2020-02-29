@@ -37,9 +37,9 @@ if __name__ == '__main__':
                 source = 'pepper'        
         
         face = PersonCloud(source)
-        print(source)
+        print('Source from: ', source)
         rospy.Service('face_recognize_cloud',FaceRecognizeCloud, face.selector)
-        print("robot face node started")
+        print("Face Recognition Cloud - node started")
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
