@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 # //======================================================================//
 # //  This software is free: you can redistribute it and/or modify        //
@@ -25,28 +26,24 @@ from External_Layer.azure import Azure
 from Utils.utils import Utils
 from Utils.edit_files import Group
 from Utils.edit_files import PersonFiles
+import threading
+import time
+
 
 class PersonCloud:
 
     def __init__(self,source):
         self.ROOT_PATH = os.path.dirname(sys.modules['__main__'].__file__)
+        self.source = source
         self.azureService = Azure()
-        self.codeError = 0
-        self.gotAttributes = False
-        self.framesTrain = None
-        self.bb_service = []
-        # self.service = None
-        self.name = "desconocido"
-        self.lastInteractionTime = 0
-        self.image = None
         self.G = Group()
         self.utils = Utils(source)
-
     def selector(self,req):
         if req.name:
-            return self.memorize(req.name, req.n_images)
+            result = self.memorize(req.name, req.n_images)
         else:
-            return self.recognize()
+            result = self.recognize()
+        return str(result)
 
     def check_img(self, frame):
         if type(frame) != bytes:
@@ -59,8 +56,7 @@ class PersonCloud:
         
         frames = [self.utils.take_picture_source() for i in range(n_images)]
 
-        print('Numero de fotos tomadas:', len(frames))
-        
+        print('Numero de fotos tomadas:', len(frames))        
 
         person_id, self.codeError = self.azureService.create_person(name)
         succes = False
@@ -88,14 +84,12 @@ class PersonCloud:
                 return []
         
     def recognize(self):
-        print(self.utils)
+
         frame = self.utils.take_picture_source()
         personsList = self.persons_in_group()
-        self.reset_attributes()
+        # self.reset_attributes()
         imgBytes = self.check_img(frame)
-        people, error = self.azureService.identify(imgBytes)
-        print(people)
-        # print('IDENTIFY VERIFICATION: ', identify)
+        people = self.azureService.identify(imgBytes)[0]
         if len(people):
             for person in personsList:
                 if people['verify_recognition']:
@@ -103,6 +97,7 @@ class PersonCloud:
                         people['name'] = person['name']
                 else:
                     people['name'] = 'Desconocido'
+        print(people)
         return people
 
     def persons_in_group(self):
@@ -128,4 +123,8 @@ class PersonCloud:
                         setattr(self, attr, ([], None))
                     else:
                         setattr(self, attr, None)
-  
+    def recall(self):
+        print('take picture', self.source)
+        while True:
+            print('take picture', self.source)
+            time.sleep(1)

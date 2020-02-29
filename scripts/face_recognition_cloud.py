@@ -21,7 +21,7 @@
 import rospy
 import sys
 from face_cloud.srv import FaceRecognizeCloud
-from Class.person_cloud import PersonCloud
+from person_cloud import PersonCloud
 
 if __name__ == '__main__':
     try:
@@ -34,8 +34,7 @@ if __name__ == '__main__':
             try:
                 source ='file' if sys.argv.index('file') else 'pepper'
             except:
-                source = 'pepper'
-        
+                source = 'pepper'        
         
         face = PersonCloud(source)
         print(source)
